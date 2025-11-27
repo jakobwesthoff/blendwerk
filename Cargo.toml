@@ -14,7 +14,6 @@ pid1 = "0.1.5"
 rcgen = "0.14.5"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_yaml = "0.9.34"
-signal-hook = { version = "0.3.18", features = ["iterator"] }
 tokio = { version = "1.48.0", features = ["full"] }
 tower-http = { version = "0.6.7", features = ["trace"] }
 tracing = "0.1.41"

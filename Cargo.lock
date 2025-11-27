@@ -212,7 +212,6 @@ dependencies = [
  "rcgen",
  "serde",
  "serde_yaml",
- "signal-hook",
  "tempfile",
  "tokio",
  "tower-http",

@@ -14,8 +14,6 @@ mod watcher;
 
 use clap::{Parser, ValueEnum};
 use pid1::Pid1Settings;
-use signal_hook::consts::{SIGINT, SIGTERM};
-use signal_hook::iterator::Signals;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
@@ -132,19 +130,33 @@ async fn main_inner() -> anyhow::Result<()> {
     // Create shutdown signal
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
 
-    // Set up signal handler for SIGTERM and SIGINT
+    // Set up signal handler for graceful shutdown
     let signal_tx = shutdown_tx.clone();
-    let mut signals = Signals::new([SIGTERM, SIGINT])?;
-    std::thread::spawn(move || {
-        for sig in signals.forever() {
-            match sig {
-                SIGTERM => info!("Received SIGTERM, shutting down..."),
-                SIGINT => info!("Received SIGINT, shutting down..."),
-                _ => {}
+    tokio::spawn(async move {
+        #[cfg(unix)]
+        {
+            let mut sigterm =
+                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+                    .expect("Failed to install SIGTERM handler");
+            let mut sigint =
+                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+                    .expect("Failed to install SIGINT handler");
+
+            tokio::select! {
+                _ = sigterm.recv() => info!("Received SIGTERM, shutting down..."),
+                _ = sigint.recv() => info!("Received SIGINT, shutting down..."),
             }
-            let _ = signal_tx.send(true);
-            break;
         }
+
+        #[cfg(not(unix))]
+        {
+            tokio::signal::ctrl_c()
+                .await
+                .expect("Failed to install Ctrl+C handler");
+            info!("Received Ctrl+C, shutting down...");
+        }
+
+        let _ = signal_tx.send(true);
     });
 
     // Get TLS config if needed
