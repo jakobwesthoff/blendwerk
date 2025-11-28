@@ -7,6 +7,7 @@
  */
 
 mod frontmatter;
+mod request_logger;
 mod routes;
 mod server;
 mod tls;
@@ -66,6 +67,14 @@ struct Args {
     /// Path to private key file (required for custom cert mode)
     #[arg(long, required_if_eq("cert_mode", "custom"))]
     key_file: Option<PathBuf>,
+
+    /// Directory to log all incoming requests
+    #[arg(long)]
+    request_log: Option<PathBuf>,
+
+    /// Format for request logs
+    #[arg(long, default_value = "json", value_enum)]
+    request_log_format: request_logger::LogFormat,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -126,6 +135,19 @@ async fn main_inner() -> anyhow::Result<()> {
 
     // Create shared routes for hot-reload
     let shared_routes = Arc::new(RwLock::new(routes));
+
+    // Create request logger if enabled
+    let request_logger = args.request_log.as_ref().map(|log_dir| {
+        info!("  Request logging: {}", log_dir.display());
+        info!("  Log format: {:?}", args.request_log_format);
+        request_logger::RequestLogger::new(log_dir.clone(), args.request_log_format.clone())
+    });
+
+    // Create application state
+    let app_state = Arc::new(server::AppState {
+        routes: shared_routes.clone(),
+        request_logger,
+    });
 
     // Create shutdown signal
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
@@ -198,21 +220,21 @@ async fn main_inner() -> anyhow::Result<()> {
     let mut handles = vec![];
 
     if run_http {
-        let routes = shared_routes.clone();
+        let state = app_state.clone();
         let shutdown = shutdown_rx.clone();
         let port = args.http_port;
         handles.push(tokio::spawn(async move {
-            server::run_http_server(routes, port, shutdown).await
+            server::run_http_server(state, port, shutdown).await
         }));
     }
 
     if run_https {
-        let routes = shared_routes.clone();
+        let state = app_state.clone();
         let shutdown = shutdown_rx.clone();
         let port = args.https_port;
         let tls = tls_config.unwrap();
         handles.push(tokio::spawn(async move {
-            server::run_https_server(routes, port, tls, shutdown).await
+            server::run_https_server(state, port, tls, shutdown).await
         }));
     }
 
