@@ -127,20 +127,57 @@ status: 201
 ### Command Line Options
 
 ```
-blendwerk [OPTIONS] <DIRECTORY>
+Usage: blendwerk [OPTIONS] <DIRECTORY>
 
 Arguments:
-  <DIRECTORY>               Directory containing mock responses
+  <DIRECTORY>
+          Directory containing mock responses
 
 Options:
-  -p, --http-port <PORT>    HTTP port [default: 8080]
-  -s, --https-port <PORT>   HTTPS port [default: 8443]
-      --http-only           Only serve HTTP
-      --https-only          Only serve HTTPS
-      --cert-mode <MODE>    Certificate mode: none, self-signed, custom [default: self-signed]
-      --cert-file <FILE>    Path to certificate file (for custom mode)
-      --key-file <FILE>     Path to private key file (for custom mode)
-  -h, --help                Print help
+  -p, --http-port <HTTP_PORT>
+          HTTP port
+          [default: 8080]
+
+  -s, --https-port <HTTPS_PORT>
+          HTTPS port
+          [default: 8443]
+
+      --http-only
+          Only serve HTTP (no HTTPS)
+
+      --https-only
+          Only serve HTTPS (no HTTP)
+
+      --cert-mode <CERT_MODE>
+          Certificate mode
+
+          Possible values:
+          - none:        No HTTPS, HTTP only
+          - self-signed: Generate self-signed certificate on startup
+          - custom:      Use custom certificate files
+
+          [default: self-signed]
+
+      --cert-file <CERT_FILE>
+          Path to certificate file (required for custom cert mode)
+
+      --key-file <KEY_FILE>
+          Path to private key file (required for custom cert mode)
+
+      --request-log <REQUEST_LOG>
+          Directory to log all incoming requests
+
+      --request-log-format <REQUEST_LOG_FORMAT>
+          Format for request logs
+
+          [default: json]
+          [possible values: json, yaml]
+
+  -h, --help
+          Print help
+
+  -V, --version
+          Print version
 ```
 
 ### HTTP/HTTPS Modes
@@ -167,6 +204,67 @@ blendwerk ./mocks --https-only
 ```bash
 blendwerk ./mocks --cert-mode custom --cert-file server.crt --key-file server.key
 ```
+
+### Request Logging
+
+blendwerk can log all incoming requests to a directory structure that mirrors your API routes. This is useful for debugging, testing, and understanding how your mock API is being used.
+
+**Enable request logging:**
+```bash
+blendwerk ./mocks --request-log ./request-logs
+```
+
+**Directory structure:**
+```
+request-logs/
+├── api/
+│   └── users/
+│       ├── GET/
+│       │   ├── 2025-01-28T15-30-45.123456Z_01HQKP6J9Z0000000000000000.json
+│       │   └── 2025-01-28T15-31-12.456789Z_01HQKP7A1A0000000000000000.json
+│       └── POST/
+│           └── 2025-01-28T15-32-00.789012Z_01HQKP8B2B0000000000000000.json
+```
+
+**Log file format:**
+
+Each request is logged as a separate file containing complete request and response information:
+
+```json
+{
+  "metadata": {
+    "timestamp": "2025-01-28T15-30-45.123456Z",
+    "request_id": "01HQKP6J9Z0000000000000000"
+  },
+  "request": {
+    "method": "GET",
+    "uri": "/api/users?page=2",
+    "path": "/api/users",
+    "query": "page=2",
+    "headers": {
+      "user-agent": "curl/8.0.0",
+      "accept": "*/*"
+    },
+    "body": null,
+    "matched_route": "/api/users"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "content-type": "application/json"
+    },
+    "body": "{\"users\": [...]}",
+    "delay_ms": 0
+  }
+}
+```
+
+**YAML format:**
+```bash
+blendwerk ./mocks --request-log ./request-logs --request-log-format yaml
+```
+
+Filenames use ISO 8601 timestamps plus ULIDs for sortability and uniqueness. Logging happens asynchronously and doesn't block responses. 404s are logged to their requested paths (e.g., a request to `/api/nonexistent` creates a log file in `request-logs/api/nonexistent/GET/`).
 
 ## Docker Container Support
 
