@@ -3,6 +3,13 @@ name = "blendwerk"
 version = "1.1.0"
 edition = "2024"
 authors = ["Jakob Westhoff <jakob@westhoffswelt.de>"]
+description = "A file-based mock HTTP/HTTPS server that maps directory structures to API endpoints"
+license = "MPL-2.0"
+repository = "https://github.com/jakobwesthoff/blendwerk.git"
+homepage = "https://github.com/jakobwesthoff/blendwerk"
+readme = "README.md"
+keywords = ["mock", "http", "server", "api", "testing"]
+categories = ["development-tools", "web-programming::http-server"]
 
 [dependencies]
 anyhow = "1.0.100"

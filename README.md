@@ -4,12 +4,15 @@ A file-based mock HTTP/HTTPS server. Define API responses as files in a director
 
 > **blendwerk** [ˈblɛntvɛrk] — German: illusion, deceptive appearance.
 
+## Installation
+
+```bash
+cargo install blendwerk
+```
+
 ## Quick Start
 
 ```bash
-# Build
-cargo build --release
-
 # Create a mock
 mkdir -p mocks/api/users
 cat > mocks/api/users/GET.json << 'EOF'
@@ -20,7 +23,7 @@ status: 200
 EOF
 
 # Run
-./target/release/blendwerk ./mocks
+blendwerk ./mocks
 
 # Test
 curl http://localhost:8080/api/users
@@ -289,6 +292,23 @@ CMD ["/mocks"]
 **Memory Usage:** blendwerk loads all mock response files into memory at startup (and on hot-reload). This keeps things blazing fast for development and testing, but means you probably shouldn't throw gigabyte-sized video files or massive datasets at it. If you're mocking endpoints that return large binary chunks, keep an eye on your RAM.
 
 **Production Use:** Look, I think blendwerk is pretty cool, and it's great for local development, integration testing, and temporary mock services. But it's not nginx. It's not built to be a battle-hardened production web server handling millions of requests. If you find yourself thinking "maybe I should use this in production for real traffic"... maybe take a step back and consider if you're solving the right problem. That said, for what it's designed to do - providing quick, file-based API mocks - it does it well.
+
+## Development
+
+```bash
+# Clone the repository
+git clone https://github.com/jakobwesthoff/blendwerk.git
+cd blendwerk
+
+# Build
+cargo build --release
+
+# Run tests
+cargo test
+
+# Run from source
+cargo run -- ./mocks
+```
 
 ## License
 
