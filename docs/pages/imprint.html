@@ -37,22 +37,6 @@
     <section class="imprint">
       <div class="container">
         <div class="imprint-content">
-          <!--
-            DISCLAIMER (English):
-            This imprint is provided as an example template only and does not constitute
-            legal advice. The content may not be legally correct or complete for your
-            jurisdiction. Please consult a legal professional to ensure compliance with
-            applicable laws. The template author is not liable for any legal issues
-            arising from the use of this template.
-
-            HAFTUNGSAUSSCHLUSS (Deutsch):
-            Dieses Impressum wird nur als Beispielvorlage zur Verfügung gestellt und
-            stellt keine Rechtsberatung dar. Der Inhalt ist möglicherweise nicht
-            rechtlich korrekt oder vollständig für Ihre Rechtsordnung. Bitte konsultieren
-            Sie einen Rechtsanwalt, um die Einhaltung der geltenden Gesetze sicherzustellen.
-            Der Autor der Vorlage haftet nicht für rechtliche Probleme, die sich aus der
-            Verwendung dieser Vorlage ergeben.
-          -->
           <h1>Impressum (Imprint)</h1>
 
           <p class="text-muted">The following information is required by German law (§ 5 TMG) and therefore in German language.</p>
@@ -69,44 +53,6 @@
             Jakob Westhoff
           </p>
 
-          <!--
-            CONTACT OBFUSCATION:
-            Phone and email are encrypted to prevent bot scraping.
-
-            NOTE: This only protects against simple bots that scrape HTML without
-            executing JavaScript. Sophisticated scrapers that run JS will still
-            be able to extract the contact info. This is a basic deterrent, not
-            a security measure.
-
-            To generate your own encrypted values:
-
-            1. Generate a random key:
-               openssl rand -base64 32
-
-            2. Run this Node.js script to encrypt your data:
-               node -e "
-               const key = 'YOUR_KEY_FROM_STEP_1';
-               function encrypt(text, key) {
-                 let enc = '';
-                 for (let i = 0; i < text.length; i++) {
-                   enc += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-                 }
-                 return Buffer.from(enc).toString('base64');
-               }
-               function rot13(s) {
-                 return s.replace(/[a-zA-Z]/g, c => {
-                   const code = c.charCodeAt(0);
-                   const base = code >= 65 && code <= 90 ? 65 : 97;
-                   return String.fromCharCode((code - base + 13) % 26 + base);
-                 });
-               }
-               console.log('Phone:', encrypt('+49 123 456789', key));
-               console.log('Email:', encrypt('you@example.com', key));
-               console.log('Key (ROT13):', rot13(key));
-               "
-
-            3. Replace data-enc values and encodedKey in the script below
-          -->
           <p><strong>Kontakt:</strong><br>
             Telefon: <span id="phone" data-enc="Tgd+bABEaENfR1NvWU1X"></span><br>
             E-Mail: <span id="email" data-enc="D1IsI1MzLwYbAA81DRMdPSZfJ2FcFA=="></span>
