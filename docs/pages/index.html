@@ -6,6 +6,9 @@
   <title>blendwerk - File-based mock HTTP/HTTPS server</title>
   <meta name="description" content="A file-based mock HTTP/HTTPS server where your directory structure IS the API. Hot-reload, YAML frontmatter, path parameters.">
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
   <!-- Prism.js syntax highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" integrity="sha512-vswe+cgvic/XBoF1OcM/TeJ2FW0OofqAVdCZiEYkd6dwGXthvkSFWOoGGJgS2CW70VK5dQM5Oh+7ne47s74VTg==" crossorigin="anonymous" referrerpolicy="no-referrer">
 
@@ -193,6 +196,13 @@ curl http://localhost:8080/api/users</code></pre>
       <div class="container">
         <div class="docs-content">
           <h2>Documentation</h2>
+
+          <p>
+            Point blendwerk at a directory and it serves mock HTTP/HTTPS responses based on the file structure. No configuration needed &mdash; just files and folders.
+          </p>
+          <div class="code-block">
+            <pre><code class="language-bash">blendwerk &lt;DIRECTORY&gt; [OPTIONS]</code></pre>
+          </div>
 
           <!-- Core Concepts -->
           <h3>Directory Structure Maps to Routes</h3>
@@ -477,10 +487,173 @@ ENTRYPOINT ["/blendwerk"]
 CMD ["/mocks"]</code></pre>
           </div>
 
+          <!-- Route Matching -->
+          <h3>Route Matching</h3>
+          <p>
+            When multiple routes could match a request, blendwerk uses <strong>first-match-wins</strong> ordering. Routes are matched in the order they're discovered during directory scanning.
+          </p>
+          <h4>Static vs Dynamic Routes</h4>
+          <p>
+            Static routes (exact paths) and dynamic routes (with <code>[param]</code> segments) are treated equally &mdash; the first match wins. If you need a specific path to take precedence:
+          </p>
+          <div class="code-block">
+            <pre><code class="language-bash">mocks/api/users/
+├── admin/
+│   └── GET.json      # GET /api/users/admin (static)
+└── [id]/
+    └── GET.json      # GET /api/users/:id (dynamic)</code></pre>
+          </div>
+          <p>
+            Both routes exist, and requests to <code>/api/users/admin</code> will match the static route if it's discovered first.
+          </p>
+
+          <h4>Multiple Path Parameters</h4>
+          <p>
+            You can use multiple <code>[param]</code> segments for nested resources:
+          </p>
+          <div class="code-block">
+            <pre><code class="language-bash">mocks/api/users/[userId]/posts/[postId]/
+├── GET.json          # GET /api/users/:userId/posts/:postId
+├── PUT.json          # PUT /api/users/:userId/posts/:postId
+└── DELETE.json       # DELETE /api/users/:userId/posts/:postId</code></pre>
+          </div>
+
+          <h4>Error Responses</h4>
+          <p>
+            blendwerk returns appropriate HTTP status codes for unmatched requests:
+          </p>
+          <div class="docs-table">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>When Returned</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>404 Not Found</code></td>
+                  <td>No route matches the requested path</td>
+                </tr>
+                <tr>
+                  <td><code>405 Method Not Allowed</code></td>
+                  <td>Path exists but requested HTTP method isn't defined</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Query Parameters -->
+          <h3>Query Parameters</h3>
+          <p>
+            Query strings do <strong>not</strong> affect route matching &mdash; all requests to a path use the same mock response regardless of query parameters:
+          </p>
+          <div class="code-block">
+            <pre><code class="language-bash"># All these hit the same mock: mocks/api/users/GET.json
+curl http://localhost:8080/api/users
+curl http://localhost:8080/api/users?page=1
+curl http://localhost:8080/api/users?page=2&amp;limit=10</code></pre>
+          </div>
+          <p>
+            However, query parameters <strong>are logged</strong> when request logging is enabled, so you can see exactly what your application is requesting.
+          </p>
+
+          <!-- Request Logging Details -->
+          <h3>Request Logging Details</h3>
+          <p>
+            Understanding the logged fields:
+          </p>
+          <div class="docs-table">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>path</code></td>
+                  <td>The literal request path (e.g., <code>/api/users/42</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>matched_route</code></td>
+                  <td>The route pattern that matched (e.g., <code>/api/users/:id</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>query</code></td>
+                  <td>Query string if present, otherwise <code>null</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <strong>404 requests</strong> are also logged to their requested paths. A request to <code>/nonexistent/path</code> creates a log file at <code>request-logs/nonexistent/path/GET/...</code>
+          </p>
+
+          <!-- Cookbook -->
+          <h3>Cookbook</h3>
+          <p><strong>RESTful CRUD API:</strong></p>
+          <div class="code-block">
+            <pre><code class="language-bash">mocks/api/users/
+├── GET.json                  # List users
+├── POST.json                 # Create user (status: 201)
+└── [id]/
+    ├── GET.json              # Get single user
+    ├── PUT.json              # Update user
+    └── DELETE.json           # Delete user (status: 204, empty body)</code></pre>
+          </div>
+          <p><strong>Error responses with custom headers:</strong></p>
+          <div class="code-block">
+            <pre><code class="language-yaml"># mocks/api/admin/GET.json
+---
+status: 403
+headers:
+  X-Error-Code: FORBIDDEN
+  X-Error-Message: Admin access required
+---
+{"error": "forbidden", "message": "Admin access required"}</code></pre>
+          </div>
+          <p><strong>CORS preflight response:</strong></p>
+          <div class="code-block">
+            <pre><code class="language-yaml"># mocks/api/data/OPTIONS.json
+---
+status: 204
+headers:
+  Access-Control-Allow-Origin: "*"
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+  Access-Control-Allow-Headers: Content-Type, Authorization
+---</code></pre>
+          </div>
+          <p><strong>Simulating slow API (rate limiting test):</strong></p>
+          <div class="code-block">
+            <pre><code class="language-yaml"># mocks/api/heavy-operation/POST.json
+---
+delay: 3000
+status: 202
+---
+{"status": "processing", "estimatedTime": "3 seconds"}</code></pre>
+          </div>
+          <p><strong>Override Content-Type:</strong></p>
+          <div class="code-block">
+            <pre><code class="language-yaml"># mocks/api/legacy/GET.json - serve JSON with custom content type
+---
+headers:
+  Content-Type: application/vnd.api+json
+---
+{"data": {"type": "users", "id": "1"}}</code></pre>
+          </div>
+
           <!-- Limitations -->
           <h3>Limitations</h3>
           <p>
             <strong>Memory Usage:</strong> blendwerk loads all mock response files into memory at startup (and on hot-reload). This keeps things fast for development and testing, but means you probably shouldn't throw gigabyte-sized files at it. If you're mocking endpoints that return large binary chunks, keep an eye on your RAM.
+          </p>
+          <p>
+            <strong>Text Files Only:</strong> Response files are read as UTF-8 text. Binary responses (images, PDFs) are not supported &mdash; attempting to serve binary files may result in corrupted output.
+          </p>
+          <p>
+            <strong>Static Responses:</strong> Responses are static &mdash; you cannot vary the response based on request body, headers, or query parameters. Each <code>(method, path)</code> combination returns the same response every time.
           </p>
           <p>
             <strong>Production Use:</strong> blendwerk is great for local development, integration testing, and temporary mock services. But it's not nginx. It's not built to be a battle-hardened production web server handling millions of requests. For what it's designed to do &mdash; providing quick, file-based API mocks &mdash; it does it well.

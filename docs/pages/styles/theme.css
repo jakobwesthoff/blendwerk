@@ -5,6 +5,11 @@
   --color-primary-hover: #16a34a;
   --color-primary-subtle: #14532d;
 
+  /* Warning colors - Amber palette */
+  --color-warning-rgb: 245, 158, 11;
+  --color-warning: rgb(var(--color-warning-rgb));
+  --color-warning-subtle: rgba(var(--color-warning-rgb), 0.1);
+
   /* Backgrounds - neutral dark */
   --color-bg: #0f0f12;
   --color-bg-transparent: rgba(15, 15, 18, 0.9);

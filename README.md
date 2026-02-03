@@ -55,6 +55,14 @@ mocks/
 - Use `[paramName]` directories for path parameters (matches any path segment)
 - Hot-reload: changes to files are detected automatically
 
+**Route Matching:** Routes use first-match-wins ordering. Both static routes and `[param]` routes are matched in discovery order.
+
+**Error Responses:**
+- `404 Not Found` — No route matches the path
+- `405 Method Not Allowed` — Path exists but method isn't defined
+
+**Query Parameters:** Query strings don't affect route matching — all requests to a path use the same mock regardless of query parameters. However, query parameters are captured in request logs.
+
 ## Response Files
 
 ### Format
@@ -292,6 +300,10 @@ CMD ["/mocks"]
 **Memory Usage:** blendwerk loads all mock response files into memory at startup (and on hot-reload). This keeps things blazing fast for development and testing, but means you probably shouldn't throw gigabyte-sized video files or massive datasets at it. If you're mocking endpoints that return large binary chunks, keep an eye on your RAM.
 
 **Production Use:** Look, I think blendwerk is pretty cool, and it's great for local development, integration testing, and temporary mock services. But it's not nginx. It's not built to be a battle-hardened production web server handling millions of requests. If you find yourself thinking "maybe I should use this in production for real traffic"... maybe take a step back and consider if you're solving the right problem. That said, for what it's designed to do - providing quick, file-based API mocks - it does it well.
+
+**Text Files Only:** Response files are read as UTF-8 text. Binary responses (images, PDFs) are not supported.
+
+**Static Responses:** Responses are static — you cannot vary the response based on request body, headers, or query parameters. Each (method, path) combination always returns the same response.
 
 ## Development
 
