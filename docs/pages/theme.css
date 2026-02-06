@@ -1,0 +1,21 @@
+:root {
+  --color-primary: #22c55e;
+  --color-primary-hover: #16a34a;
+  --color-primary-subtle: #14532d;
+  --color-bg: #0f0f12;
+  --color-bg-transparent: rgba(15, 15, 18, 0.9);
+  --color-bg-alt: #17171c;
+  --color-bg-card: #1c1c22;
+  --color-bg-code: #17171c;
+  --color-bg-titlebar: #1a1a1e;
+  --color-border: #2a2a32;
+}
+
+.hero-subtitle {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-weight: 400;
+  margin-bottom: var(--space-md);
+  letter-spacing: normal;
+}

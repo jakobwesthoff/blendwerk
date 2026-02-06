@@ -29,13 +29,22 @@ blendwerk ./mocks
 curl http://localhost:8080/api/users
 ```
 
+<!-- docs:start -->
+## Documentation
+
+Point blendwerk at a directory and it serves mock HTTP/HTTPS responses based on the file structure. No configuration needed — just files and folders.
+
+```bash
+blendwerk <DIRECTORY> [OPTIONS]
+```
+
 ## Core Concepts
 
 ### Directory Structure Maps to Routes
 
 Your directory structure IS your API. Folders become URL paths, filenames become HTTP methods. That's it.
 
-```
+```bash
 mocks/
 ├── api/
 │   ├── users/
@@ -102,6 +111,7 @@ Automatically inferred from file extension (can of course be overridden in `head
 ### Examples
 
 **Error response:**
+
 ```yaml
 # mocks/api/protected/GET.json
 ---
@@ -113,6 +123,7 @@ headers:
 ```
 
 **Simulating latency:**
+
 ```yaml
 # mocks/api/slow/GET.json
 ---
@@ -122,6 +133,7 @@ delay: 2000
 ```
 
 **Multiple methods:**
+
 ```bash
 # mocks/api/items/GET.json
 {"items": []}
@@ -137,7 +149,7 @@ status: 201
 
 ### Command Line Options
 
-```
+```bash
 Usage: blendwerk [OPTIONS] <DIRECTORY>
 
 Arguments:
@@ -194,12 +206,14 @@ Options:
 ### HTTP/HTTPS Modes
 
 **Default (HTTP + HTTPS with self-signed cert):**
+
 ```bash
 blendwerk ./mocks
 # HTTP on :8080, HTTPS on :8443
 ```
 
 **HTTP only:**
+
 ```bash
 blendwerk ./mocks --http-only
 # or
@@ -207,11 +221,13 @@ blendwerk ./mocks --cert-mode none
 ```
 
 **HTTPS only:**
+
 ```bash
 blendwerk ./mocks --https-only
 ```
 
 **Custom certificate:**
+
 ```bash
 blendwerk ./mocks --cert-mode custom --cert-file server.crt --key-file server.key
 ```
@@ -221,12 +237,14 @@ blendwerk ./mocks --cert-mode custom --cert-file server.crt --key-file server.ke
 blendwerk can log all incoming requests to a directory structure that mirrors your API routes. This is useful for debugging, testing, and understanding how your mock API is being used.
 
 **Enable request logging:**
+
 ```bash
 blendwerk ./mocks --request-log ./request-logs
 ```
 
 **Directory structure:**
-```
+
+```bash
 request-logs/
 ├── api/
 │   └── users/
@@ -271,11 +289,128 @@ Each request is logged as a separate file containing complete request and respon
 ```
 
 **YAML format:**
+
 ```bash
 blendwerk ./mocks --request-log ./request-logs --request-log-format yaml
 ```
 
 Filenames use ISO 8601 timestamps plus ULIDs for sortability and uniqueness. Logging happens asynchronously and doesn't block responses. 404s are logged to their requested paths (e.g., a request to `/api/nonexistent` creates a log file in `request-logs/api/nonexistent/GET/`).
+
+## Route Matching
+
+When multiple routes could match a request, blendwerk uses **first-match-wins** ordering. Routes are matched in the order they're discovered during directory scanning.
+
+### Static vs Dynamic Routes
+
+Static routes (exact paths) and dynamic routes (with `[param]` segments) are treated equally — the first match wins. If you need a specific path to take precedence:
+
+```bash
+mocks/api/users/
+├── admin/
+│   └── GET.json      # GET /api/users/admin (static)
+└── [id]/
+    └── GET.json      # GET /api/users/:id (dynamic)
+```
+
+Both routes exist, and requests to `/api/users/admin` will match the static route if it's discovered first.
+
+### Multiple Path Parameters
+
+You can use multiple `[param]` segments for nested resources:
+
+```bash
+mocks/api/users/[userId]/posts/[postId]/
+├── GET.json          # GET /api/users/:userId/posts/:postId
+├── PUT.json          # PUT /api/users/:userId/posts/:postId
+└── DELETE.json       # DELETE /api/users/:userId/posts/:postId
+```
+
+## Query Parameters
+
+Query strings do **not** affect route matching — all requests to a path use the same mock response regardless of query parameters:
+
+```bash
+# All these hit the same mock: mocks/api/users/GET.json
+curl http://localhost:8080/api/users
+curl http://localhost:8080/api/users?page=1
+curl http://localhost:8080/api/users?page=2&limit=10
+```
+
+However, query parameters **are logged** when request logging is enabled, so you can see exactly what your application is requesting.
+
+## Request Logging Details
+
+Understanding the logged fields:
+
+| Field | Description |
+|-------|-------------|
+| `path` | The literal request path (e.g., `/api/users/42`) |
+| `matched_route` | The route pattern that matched (e.g., `/api/users/:id`) |
+| `query` | Query string if present, otherwise `null` |
+
+**404 requests** are also logged to their requested paths. A request to `/nonexistent/path` creates a log file at `request-logs/nonexistent/path/GET/...`
+
+## Cookbook
+
+**RESTful CRUD API:**
+
+```bash
+mocks/api/users/
+├── GET.json                  # List users
+├── POST.json                 # Create user (status: 201)
+└── [id]/
+    ├── GET.json              # Get single user
+    ├── PUT.json              # Update user
+    └── DELETE.json           # Delete user (status: 204, empty body)
+```
+
+**Error responses with custom headers:**
+
+```yaml
+# mocks/api/admin/GET.json
+---
+status: 403
+headers:
+  X-Error-Code: FORBIDDEN
+  X-Error-Message: Admin access required
+---
+{"error": "forbidden", "message": "Admin access required"}
+```
+
+**CORS preflight response:**
+
+```yaml
+# mocks/api/data/OPTIONS.json
+---
+status: 204
+headers:
+  Access-Control-Allow-Origin: "*"
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE
+  Access-Control-Allow-Headers: Content-Type, Authorization
+---
+```
+
+**Simulating slow API (rate limiting test):**
+
+```yaml
+# mocks/api/heavy-operation/POST.json
+---
+delay: 3000
+status: 202
+---
+{"status": "processing", "estimatedTime": "3 seconds"}
+```
+
+**Override Content-Type:**
+
+```yaml
+# mocks/api/legacy/GET.json - serve JSON with custom content type
+---
+headers:
+  Content-Type: application/vnd.api+json
+---
+{"data": {"type": "users", "id": "1"}}
+```
 
 ## Docker Container Support
 
@@ -304,6 +439,8 @@ CMD ["/mocks"]
 **Text Files Only:** Response files are read as UTF-8 text. Binary responses (images, PDFs) are not supported.
 
 **Static Responses:** Responses are static — you cannot vary the response based on request body, headers, or query parameters. Each (method, path) combination always returns the same response.
+
+<!-- docs:end -->
 
 ## Development
 

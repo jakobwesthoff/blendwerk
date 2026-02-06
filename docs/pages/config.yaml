@@ -1,0 +1,56 @@
+name: blendwerk
+tagline: File-based mock HTTP/HTTPS server
+github: jakobwesthoff/blendwerk
+
+author:
+  name: Jakob Westhoff
+  website: https://westhoffswelt.de
+
+navbar_buttons:
+  - label: Quick Start
+    href: "#quickstart"
+    style: primary
+    icon: download
+  - label: GitHub
+    href: https://github.com/jakobwesthoff/blendwerk
+    style: secondary
+    icon: github
+
+sections:
+  - id: hero
+    file: sections/hero.html
+    nav: false
+
+  - id: highlights
+    file: sections/highlights.html
+    nav: false
+
+  - id: demo
+    file: sections/demo.html
+    nav: true
+    nav_label: Demo
+
+  - id: quickstart
+    file: sections/quick-start.html
+    nav: true
+    nav_label: Quick Start
+
+  - id: docs
+    source: readme
+    nav: true
+    nav_label: Documentation
+
+  - id: footer
+    file: sections/footer.html
+    nav: false
+
+imprint:
+  enabled: true
+  name: Jakob Westhoff
+  address: |
+    Am Bollwerk 6
+    58300 Wetter
+    Deutschland
+  phone_encrypted: "Tgd+bABEaENfR1NvWU1X"
+  email_encrypted: "D1IsI1MzLwYbAA81DRMdPSZfJ2FcFA=="
+  encryption_key: "r3TY1fKpugtMxhaWP3FB8dP0m3YeP7yo4YBcxGNT4wV="
