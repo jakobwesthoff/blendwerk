@@ -430,6 +430,29 @@ ENTRYPOINT ["/blendwerk"]
 CMD ["/mocks"]
 ```
 
+## Using blendwerk with AI Agents
+
+Scaffolding a large mock tree, writing dozens of response files, or mining
+request logs for the endpoints your app actually calls is exactly the kind of
+ground work an AI coding agent should do for you. This repository ships an
+[agent skill](https://github.com/jakobwesthoff/blendwerk/tree/main/skills/blendwerk)
+that teaches agents the directory-to-route mapping, the response file format,
+the request log structure, and the sharp edges that are easy to get wrong.
+
+Install it into your project with the [skills CLI](https://skills.sh):
+
+```bash
+npx skills add jakobwesthoff/blendwerk
+```
+
+This works for Claude Code and other supported agents; alternatively, copy or
+symlink `skills/blendwerk/` into your project's `.claude/skills/`. Then hand
+over the grunt work:
+
+- "Mock the user and billing endpoints our frontend calls."
+- "Check the request logs and create mocks for everything that currently 404s."
+- "Add an error variant of the orders endpoint: status 500 after a 2 second delay."
+
 ## Limitations
 
 **Memory Usage:** blendwerk loads all mock response files into memory at startup (and on hot-reload). This keeps things blazing fast for development and testing, but means you probably shouldn't throw gigabyte-sized video files or massive datasets at it. If you're mocking endpoints that return large binary chunks, keep an eye on your RAM.
