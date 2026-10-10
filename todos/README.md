@@ -80,6 +80,7 @@ those citations change with it (`rg -i <ulid>` finds them).
 
 - `server`: the HTTP and HTTPS server, method and path matching, error responses and request logging (`src/server.rs`, `src/request_logger.rs`, `src/tls.rs`)
 - `routes`: the directory scan and route table, response file parsing and hot reload (`src/routes.rs`, `src/frontmatter.rs`, `src/watcher.rs`)
+- `cli`: the command line, its arguments and subcommands (`src/main.rs`)
 - `project`: build, CI, release, repository-wide docs and product
   decisions; only when no other component fits
 
