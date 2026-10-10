@@ -1,6 +1,18 @@
-# README/code contradiction: 405 for missing method on existing path
+---
+title: "README and code disagree on 405 for a missing method on an existing path"
+kind: investigation
+component: server
+status: needs-discussion
+---
+# README and code disagree on 405 for a missing method on an existing path
 
-## Observation
+`README.md` (Error Responses section) promises a `405 Method Not
+Allowed` when a path exists but the method is not defined. The code
+never returns that for this case and answers `404` instead, so either
+the README or the server has to change. Which side is authoritative is
+still open, and it needs a decision before anyone works on the fix.
+
+## Context
 
 `README.md` (Error Responses section) documents:
 
@@ -19,15 +31,15 @@ all: `parse_http_method` (`src/server.rs:228-239`) returns `None` for
 anything outside GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS (e.g. TRACE,
 CONNECT), which triggers `method_not_allowed` (`src/server.rs:257-264`).
 
-## Task
+## Options
 
-Decide which side is authoritative:
-
-- **Docs wrong:** remove/correct the 405 bullet in `README.md` (and the
-  derived gh-pages documentation, which is generated from the README).
-- **Code bug:** implement real 405 semantics — when no (method, path) route
-  matches but some other method matches the same path, return 405 (RFC 9110
-  also expects an `Allow` header listing the permitted methods).
+- **Docs wrong:** remove or correct the 405 bullet in `README.md` (and
+  the derived gh-pages documentation, which is generated from the
+  README).
+- **Code bug:** implement real 405 semantics. When no (method, path)
+  route matches but some other method matches the same path, return
+  405 (RFC 9110 also expects an `Allow` header listing the permitted
+  methods).
 
 ## Affected if the decision is "code bug"
 
@@ -45,3 +57,8 @@ Decide which side is authoritative:
 serializer omits absent fields entirely (`skip_serializing_if` on `query`,
 `body`, `matched_route` in `src/request_logger.rs:122-133`). Minor doc
 inaccuracy, fix alongside whichever direction is chosen.
+
+## Open questions
+
+- Which side is authoritative: the README's 405 promise, or the current
+  404 behavior?
