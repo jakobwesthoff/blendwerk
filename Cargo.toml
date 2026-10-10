@@ -10,6 +10,10 @@ homepage = "https://blendwerk.westhoffswelt.de"
 readme = "README.md"
 keywords = ["mock", "http", "server", "api", "testing"]
 categories = ["development-tools", "web-programming::http-server"]
+# The website, the agent skill, the container setup, todos and repository
+# tooling are not needed to build blendwerk. CLAUDE.md and mocks/ are
+# local, untracked files.
+exclude = [".github/", "CLAUDE.md", "Dockerfile", "docs/", "mocks/", "skills/", "todos/"]
 
 [dependencies]
 anyhow = "1.0.100"
