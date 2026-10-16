@@ -1,6 +1,8 @@
 name: blendwerk
 tagline: File-based mock HTTP/HTTPS server
 github: jakobwesthoff/blendwerk
+url: https://blendwerk.westhoffswelt.de
+og_image: assets/og.png
 
 author:
   name: Jakob Westhoff
