@@ -3,6 +3,7 @@ tagline: File-based mock HTTP/HTTPS server
 github: jakobwesthoff/blendwerk
 url: https://blendwerk.westhoffswelt.de
 og_image: assets/og.png
+og_image_alt: "blendwerk: Your directories are the API. A terminal shows a mocks directory tree and a curl request answered with 201 Created."
 
 author:
   name: Jakob Westhoff
